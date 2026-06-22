@@ -1,25 +1,26 @@
 <template>
-  <AuthLayout>
-    <div class="space-y-6">
+  <AuthLayout variant="gateway">
+    <div class="login-gateway-form">
       <!-- Title -->
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+      <div class="login-gateway-heading text-center">
+        <div class="login-gateway-kicker">secure gateway</div>
+        <h2>
           {{ t('auth.welcomeBack') }}
         </h2>
-        <p class="mt-2 text-sm text-gray-500 dark:text-dark-400">
+        <p>
           {{ t('auth.signInToAccount') }}
         </p>
       </div>
       <!-- Login Form -->
-      <form @submit.prevent="handleLogin" class="space-y-5">
+      <form @submit.prevent="handleLogin" class="login-gateway-fields">
         <!-- Email Input -->
-        <div>
-          <label for="email" class="input-label">
+        <div class="login-gateway-field">
+          <label for="email" class="login-gateway-label">
             {{ t('auth.emailLabel') }}
           </label>
-          <div class="relative">
+          <div class="login-gateway-input-shell">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
-              <Icon name="mail" size="md" class="text-gray-400 dark:text-dark-500" />
+              <Icon name="mail" size="md" class="login-gateway-input-icon" />
             </div>
             <input
               id="email"
@@ -29,7 +30,7 @@
               autofocus
               autocomplete="email"
               :disabled="authActionDisabled"
-              class="input pl-11"
+              class="input login-gateway-input pl-11"
               :class="{ 'input-error': errors.email }"
               :placeholder="t('auth.emailPlaceholder')"
             />
@@ -37,13 +38,13 @@
         </div>
 
         <!-- Password Input -->
-        <div>
-          <label for="password" class="input-label">
+        <div class="login-gateway-field">
+          <label for="password" class="login-gateway-label">
             {{ t('auth.passwordLabel') }}
           </label>
-          <div class="relative">
+          <div class="login-gateway-input-shell">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
-              <Icon name="lock" size="md" class="text-gray-400 dark:text-dark-500" />
+              <Icon name="lock" size="md" class="login-gateway-input-icon" />
             </div>
             <input
               id="password"
@@ -52,7 +53,7 @@
               required
               autocomplete="current-password"
               :disabled="authActionDisabled"
-              class="input pl-11 pr-11"
+              class="input login-gateway-input pl-11 pr-11"
               :class="{ 'input-error': errors.password }"
               :placeholder="t('auth.passwordPlaceholder')"
             />
@@ -60,18 +61,19 @@
               type="button"
               @click="showPassword = !showPassword"
               :disabled="authActionDisabled"
-              class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-dark-300"
+              class="login-gateway-password-toggle"
+              :aria-label="showPassword ? 'Hide password' : 'Show password'"
             >
               <Icon v-if="showPassword" name="eyeOff" size="md" />
               <Icon v-else name="eye" size="md" />
             </button>
           </div>
-          <div class="mt-1 flex items-center justify-between">
+          <div class="login-gateway-field-meta">
             <span></span>
             <router-link
               v-if="passwordResetEnabled && !backendModeEnabled"
               to="/forgot-password"
-              class="text-sm font-medium text-primary-600 transition-colors hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+              class="login-gateway-link"
             >
               {{ t('auth.forgotPassword') }}
             </router-link>
@@ -79,7 +81,7 @@
         </div>
 
         <!-- Turnstile Widget -->
-        <div v-if="turnstileEnabled && turnstileSiteKey">
+        <div v-if="turnstileEnabled && turnstileSiteKey" class="login-gateway-verification">
           <TurnstileWidget
             ref="turnstileRef"
             :site-key="turnstileSiteKey"
@@ -93,7 +95,7 @@
         <button
           type="submit"
           :disabled="authActionDisabled || (turnstileEnabled && !turnstileToken)"
-          class="btn btn-primary w-full"
+          class="btn btn-primary w-full login-gateway-submit"
         >
           <svg
             v-if="isLoading"
@@ -131,13 +133,13 @@
           @open="showAgreementModal = true"
         />
 
-        <div v-if="showOAuthLogin" class="space-y-3 pt-1">
-          <div class="flex items-center gap-3">
-            <div class="h-px flex-1 bg-gray-200 dark:bg-dark-700"></div>
-            <span class="text-xs text-gray-500 dark:text-dark-400">
+        <div v-if="showOAuthLogin" class="login-gateway-oauth">
+          <div class="login-gateway-divider">
+            <div></div>
+            <span>
               {{ t('auth.oauthOrContinue') }}
             </span>
-            <div class="h-px flex-1 bg-gray-200 dark:bg-dark-700"></div>
+            <div></div>
           </div>
 
           <EmailOAuthButtons
@@ -174,11 +176,11 @@
 
     <!-- Footer -->
     <template v-if="!backendModeEnabled" #footer>
-      <p class="text-gray-500 dark:text-dark-400">
+      <p class="login-gateway-footer">
         {{ t('auth.dontHaveAccount') }}
         <router-link
           to="/register"
-          class="font-medium text-primary-600 transition-colors hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+          class="login-gateway-footer-link"
         >
           {{ t('auth.signUp') }}
         </router-link>
@@ -553,6 +555,193 @@ function handle2FACancel(): void {
 </script>
 
 <style scoped>
+.login-gateway-form {
+  --login-text: var(--auth-text, #374151);
+  --login-strong: var(--auth-strong, #111827);
+  --login-muted: var(--auth-muted, #6b7280);
+  --login-surface: var(--auth-surface, rgba(255, 255, 255, 0.9));
+  --login-surface-strong: var(--auth-surface-strong, #ffffff);
+  --login-border: var(--auth-border, rgba(17, 24, 39, 0.1));
+  --login-border-strong: var(--auth-border-strong, rgba(17, 24, 39, 0.18));
+  --login-accent: var(--auth-accent, #14b8a6);
+  --login-accent-strong: var(--auth-accent-strong, #0f766e);
+  --login-accent-muted: var(--auth-accent-muted, rgba(20, 184, 166, 0.1));
+  display: grid;
+  gap: 1.35rem;
+  color: var(--login-text);
+}
+
+.login-gateway-heading {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.login-gateway-kicker {
+  color: var(--login-accent-strong);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.login-gateway-heading h2 {
+  margin: 0;
+  color: var(--login-strong);
+  font-size: 1.55rem;
+  font-weight: 820;
+  line-height: 1.18;
+}
+
+.login-gateway-heading p {
+  margin: 0;
+  color: var(--login-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.login-gateway-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+.login-gateway-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.login-gateway-label {
+  color: var(--login-strong);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.login-gateway-input-shell {
+  position: relative;
+}
+
+.login-gateway-input-icon {
+  color: var(--login-muted);
+}
+
+.login-gateway-input {
+  min-height: 2.9rem;
+  border-radius: 0.5rem;
+  border-color: var(--login-border-strong);
+  background: var(--login-surface);
+  color: var(--login-strong);
+  box-shadow: none;
+}
+
+.login-gateway-input:focus {
+  border-color: var(--login-accent);
+  box-shadow: 0 0 0 3px var(--login-accent-muted);
+}
+
+.login-gateway-password-toggle {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding-right: 0.875rem;
+  color: var(--login-muted);
+  transition: color 0.16s ease;
+}
+
+.login-gateway-password-toggle:hover {
+  color: var(--login-strong);
+}
+
+.login-gateway-password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.login-gateway-field-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 1.2rem;
+}
+
+.login-gateway-link,
+.login-gateway-footer-link {
+  color: var(--login-accent-strong);
+  font-size: 0.82rem;
+  font-weight: 720;
+  transition: color 0.16s ease;
+}
+
+.login-gateway-link:hover,
+.login-gateway-footer-link:hover {
+  color: var(--login-accent);
+}
+
+.login-gateway-verification {
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.login-gateway-submit {
+  min-height: 2.95rem;
+  border-radius: 0.5rem;
+  background: var(--login-accent-strong);
+  box-shadow: none;
+  font-weight: 780;
+}
+
+.login-gateway-submit:hover:not(:disabled) {
+  background: var(--login-accent);
+  box-shadow: none;
+}
+
+.login-gateway-oauth {
+  display: grid;
+  gap: 0.85rem;
+  padding-top: 0.15rem;
+}
+
+.login-gateway-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.login-gateway-divider div {
+  height: 1px;
+  flex: 1;
+  background: var(--login-border);
+}
+
+.login-gateway-divider span {
+  color: var(--login-muted);
+  font-size: 0.7rem;
+  font-weight: 740;
+  text-transform: uppercase;
+}
+
+.login-gateway-oauth :deep(.btn-secondary),
+.login-gateway-oauth :deep(button),
+.login-gateway-oauth :deep(a) {
+  border-radius: 0.5rem;
+}
+
+.login-gateway-oauth :deep(.btn-secondary) {
+  border-color: var(--login-border-strong);
+  background: var(--login-surface);
+  color: var(--login-strong);
+  box-shadow: none;
+}
+
+.login-gateway-oauth :deep(.btn-secondary:hover:not(:disabled)) {
+  border-color: var(--login-accent);
+  background: var(--login-accent-muted);
+}
+
+.login-gateway-footer {
+  color: var(--auth-muted, #6b7280);
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
@@ -562,5 +751,13 @@ function handle2FACancel(): void {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-gateway-form *,
+  .login-gateway-form *::before,
+  .login-gateway-form *::after {
+    transition: none !important;
+  }
 }
 </style>
